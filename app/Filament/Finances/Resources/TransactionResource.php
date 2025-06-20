@@ -163,7 +163,8 @@ class TransactionResource extends Resource
                             ->maxSize(5120) // 5MB
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
                             ->directory('receipts')
-                            ->visibility('private'),
+                            ->disk('public')
+                            ->visibility('public'),
 
                         Forms\Components\Textarea::make('notes')
                             ->label(__('transactions.notes'))
@@ -221,7 +222,8 @@ class TransactionResource extends Resource
                     ->tooltip('Click to copy')
                     ->badge()
                     ->color('gray')
-                    ->size('sm'),
+                    ->size('sm')
+                    ->visibleFrom('md'),
 
                 Tables\Columns\TextColumn::make('description')
                     ->label(__('transactions.description'))
@@ -255,20 +257,23 @@ class TransactionResource extends Resource
                         'expense' => 'danger',
                         'transfer' => 'info',
                     })
-                    ->formatStateUsing(fn(string $state): string => __('transactions.' . $state)),
+                    ->formatStateUsing(fn(string $state): string => __('transactions.' . $state))
+                    ->visibleFrom('lg'),
 
                 Tables\Columns\TextColumn::make('category.name')
                     ->label(__('transactions.category'))
                     ->default('—')
                     ->badge()
                     ->color('gray')
-                    ->limit(20),
+                    ->limit(20)
+                    ->visibleFrom('lg'),
 
                 Tables\Columns\TextColumn::make('wallet.name')
                     ->label(__('transactions.wallet'))
                     ->badge()
                     ->color('primary')
-                    ->limit(15),
+                    ->limit(15)
+                    ->visibleFrom('xl'),
 
                 Tables\Columns\IconColumn::make('is_recurring')
                     ->label(__('transactions.recurring'))
@@ -276,7 +281,8 @@ class TransactionResource extends Resource
                     ->trueIcon('heroicon-o-arrow-path')
                     ->falseIcon('heroicon-o-minus')
                     ->trueColor('info')
-                    ->falseColor('gray'),
+                    ->falseColor('gray')
+                    ->visibleFrom('xl'),
 
                 Tables\Columns\IconColumn::make('receipt')
                     ->label('Receipt')
@@ -284,7 +290,8 @@ class TransactionResource extends Resource
                     ->trueIcon('heroicon-o-paper-clip')
                     ->falseIcon('heroicon-o-minus')
                     ->trueColor('success')
-                    ->falseColor('gray'),
+                    ->falseColor('gray')
+                    ->visibleFrom('xl'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')

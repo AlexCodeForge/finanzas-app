@@ -273,7 +273,7 @@ class CategoryResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\Action::make('view_transactions')
                         ->label('View Transactions')

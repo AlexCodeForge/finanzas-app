@@ -11,6 +11,7 @@ return [
   'icon' => 'Icon',
   'budget_limit' => 'Budget Limit',
   'is_active' => 'Active',
+  'active' => 'Active',
   'created_at' => 'Created At',
   'updated_at' => 'Updated At',
   'income' => 'Income',

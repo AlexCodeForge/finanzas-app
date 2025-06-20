@@ -2,6 +2,7 @@
 
 return [
     'title' => 'Transacciones',
+    'create_transaction' => 'Crear Transacción',
     'amount' => 'Monto',
     'type' => 'Tipo',
     'description' => 'Descripción',
