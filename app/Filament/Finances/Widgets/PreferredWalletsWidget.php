@@ -25,30 +25,22 @@ class PreferredWalletsWidget extends BaseWidget
         $preferredWallets = $user->preferredWallets;
 
         if ($preferredWallets->isEmpty()) {
-            // If no preferred wallets are set, show a message and settings link
-            $stats[] = Stat::make('Preferred Wallets', 'Not configured')
-                ->description('Set up to 3 preferred wallets to display here')
+            // If no preferred wallets are set, show a single message card
+            $stats[] = Stat::make(__('finance.preferred_wallets'), __('finance.not_configured'))
+                ->description(__('finance.preferred_wallets_description'))
                 ->descriptionIcon('heroicon-m-cog-6-tooth')
-                ->color('gray');
-
-            // Add placeholder stats
-            $stats[] = Stat::make('', '')
-                ->description('')
-                ->color('gray');
-
-            $stats[] = Stat::make('', '')
-                ->description('')
-                ->color('gray');
+                ->color('gray')
+                ->url(route('filament.finances.pages.settings'));
         } else {
             // Display preferred wallets
             foreach ($preferredWallets as $index => $wallet) {
                 $typeLabels = [
-                    'bank_account' => 'Bank Account',
-                    'cash' => 'Cash',
-                    'credit_card' => 'Credit Card',
-                    'savings' => 'Savings',
-                    'investment' => 'Investment',
-                    'other' => 'Other',
+                    'bank_account' => __('wallets.bank_account'),
+                    'cash' => __('wallets.cash'),
+                    'credit_card' => __('wallets.credit_card'),
+                    'savings' => __('wallets.savings'),
+                    'investment' => __('wallets.investment'),
+                    'other' => __('wallets.other'),
                 ];
 
                 $typeLabel = $typeLabels[$wallet->type] ?? ucfirst($wallet->type);
@@ -59,12 +51,7 @@ class PreferredWalletsWidget extends BaseWidget
                     ->color($wallet->balance >= 0 ? 'success' : 'danger');
             }
 
-            // Fill empty slots if less than 3 wallets
-            while (count($stats) < 3) {
-                $stats[] = Stat::make('', '')
-                    ->description('')
-                    ->color('gray');
-            }
+            // Don't add empty skeleton cards - just show the configured wallets
         }
 
         return $stats;

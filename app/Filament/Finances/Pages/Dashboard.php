@@ -24,11 +24,36 @@ class Dashboard extends BaseDashboard
   protected function getHeaderActions(): array
   {
     return [
+      Actions\Action::make('create_wallet')
+        ->label(__('wallets.create_wallet'))
+        ->icon('heroicon-o-credit-card')
+        ->color('warning')
+        ->size('lg')
+        ->visible(function () {
+          $walletCount = Wallet::where('user_id', Filament::auth()->id())
+            ->where('is_active', true)
+            ->count();
+          return $walletCount === 0;
+        })
+        ->url(fn(): string => route('filament.finances.resources.wallets.create')),
+
       Actions\Action::make('create_transaction')
         ->label(__('transactions.create_transaction'))
         ->icon('heroicon-o-plus-circle')
         ->color('primary')
         ->size('lg')
+        ->visible(function () {
+          $walletCount = Wallet::where('user_id', Filament::auth()->id())
+            ->where('is_active', true)
+            ->count();
+          return $walletCount > 0;
+        })
+        ->disabled(function () {
+          $walletCount = Wallet::where('user_id', Filament::auth()->id())
+            ->where('is_active', true)
+            ->count();
+          return $walletCount === 0;
+        })
         ->steps([
           // Step 1: Transaction Type & Basic Info
           Step::make('basic_info')
@@ -235,22 +260,84 @@ class Dashboard extends BaseDashboard
 
   public function getWidgets(): array
   {
-    return [
-      // Financial Overview Stats
-      \App\Filament\Finances\Widgets\FinancialOverviewWidget::class,
-      \App\Filament\Finances\Widgets\PreferredWalletsWidget::class,
+    $userId = Filament::auth()->id();
+    $walletCount = Wallet::where('user_id', $userId)
+      ->where('is_active', true)
+      ->count();
 
-      // Charts Row
-      \App\Filament\Finances\Widgets\IncomeExpenseChartWidget::class,
-      \App\Filament\Finances\Widgets\WalletBreakdownWidget::class,
-      \App\Filament\Finances\Widgets\CategorySpendingWidget::class,
+    $widgets = [];
 
-      // Advanced Analytics
-      \App\Filament\Finances\Widgets\MonthlyTrendsWidget::class,
+    if ($walletCount === 0) {
+      // Show welcome widget when no wallets
+      $widgets = [
+        \App\Filament\Finances\Widgets\WelcomeWidget::class,
+      ];
+    } else {
+      // Start with core widgets that always make sense
+      $widgets = [
+        \App\Filament\Finances\Widgets\FinancialOverviewWidget::class,
+        \App\Filament\Finances\Widgets\PreferredWalletsWidget::class,
+      ];
 
-      // Recent Activity
-      \App\Filament\Finances\Widgets\RecentTransactionsWidget::class,
-    ];
+      // Check if user has transactions for chart widgets
+      $transactionCount = Transaction::where('user_id', $userId)->count();
+      $recentTransactionCount = Transaction::where('user_id', $userId)
+        ->where('date', '>=', now()->subDays(30))
+        ->count();
+
+      // If no transactions, show guidance widget
+      if ($transactionCount === 0) {
+        $widgets[] = \App\Filament\Finances\Widgets\FirstTransactionWidget::class;
+      } else if ($transactionCount >= 3) {
+        // Check for wallet breakdown data (wallets with positive balance)
+        $walletsWithBalance = Wallet::where('user_id', $userId)
+          ->where('is_active', true)
+          ->where('balance', '>', 0)
+          ->count();
+
+        if ($walletsWithBalance >= 2) {
+          $widgets[] = \App\Filament\Finances\Widgets\WalletBreakdownWidget::class;
+        }
+
+        // Check for income/expense data in last 6 months
+        $monthlyTransactions = Transaction::where('user_id', $userId)
+          ->where('date', '>=', now()->subMonths(6))
+          ->whereIn('type', ['income', 'expense'])
+          ->count();
+
+        if ($monthlyTransactions >= 5) {
+          $widgets[] = \App\Filament\Finances\Widgets\IncomeExpenseChartWidget::class;
+        }
+
+        // Check for category spending data this month
+        $categoryTransactions = Transaction::where('user_id', $userId)
+          ->where('type', 'expense')
+          ->whereMonth('date', now()->month)
+          ->whereNotNull('category_id')
+          ->count();
+
+        if ($categoryTransactions >= 3) {
+          $widgets[] = \App\Filament\Finances\Widgets\CategorySpendingWidget::class;
+        }
+
+        // Only show advanced trends if there's data across multiple months
+        $monthsWithData = Transaction::where('user_id', $userId)
+          ->selectRaw('YEAR(date) as year, MONTH(date) as month')
+          ->groupBy('year', 'month')
+          ->count();
+
+        if ($monthsWithData >= 3) {
+          $widgets[] = \App\Filament\Finances\Widgets\MonthlyTrendsWidget::class;
+        }
+      }
+
+      // Always show recent transactions if there are any
+      if ($recentTransactionCount > 0) {
+        $widgets[] = \App\Filament\Finances\Widgets\RecentTransactionsWidget::class;
+      }
+    }
+
+    return $widgets;
   }
 
   public function getColumns(): int | string | array

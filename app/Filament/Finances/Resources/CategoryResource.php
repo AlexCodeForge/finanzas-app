@@ -45,7 +45,7 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Category Information')
+                Forms\Components\Section::make(__('categories.category_information'))
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label(__('categories.name'))
@@ -71,7 +71,7 @@ class CategoryResource extends Resource
                             })
                             ->searchable()
                             ->preload()
-                            ->helperText('Optional: Select a parent category to create a subcategory'),
+                            ->helperText(__('categories.parent_helper')),
 
                         Forms\Components\ColorPicker::make('color')
                             ->label(__('categories.color'))
@@ -113,7 +113,7 @@ class CategoryResource extends Resource
                             ->required()
                             ->default('heroicon-o-folder')
                             ->searchable()
-                            ->helperText('Choose an icon that represents this category'),
+                            ->helperText(__('categories.icon_helper')),
 
                         Forms\Components\Toggle::make('is_active')
                             ->label(__('categories.is_active'))
@@ -121,7 +121,7 @@ class CategoryResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Budget Management')
+                Forms\Components\Section::make(__('categories.budget_management'))
                     ->schema([
                         Forms\Components\TextInput::make('budget_limit')
                             ->label(__('categories.budget_limit'))
@@ -129,13 +129,13 @@ class CategoryResource extends Resource
                             ->prefix('$')
                             ->step(0.01)
                             ->minValue(0)
-                            ->helperText('Set a monthly spending limit for this category'),
+                            ->helperText(__('categories.budget_helper')),
 
                         Forms\Components\Placeholder::make('budget_status')
-                            ->label('Current Month Status')
+                            ->label(__('categories.current_month_status'))
                             ->content(function (?Category $record): string {
                                 if (!$record || !$record->budget_limit) {
-                                    return 'No budget limit set';
+                                    return __('categories.no_budget_set');
                                 }
 
                                 $spent = $record->getMonthlySpending();
@@ -155,7 +155,7 @@ class CategoryResource extends Resource
                     ->columns(2)
                     ->visible(fn(Forms\Get $get): bool => $get('type') === 'expense'),
 
-                Forms\Components\Section::make('Description')
+                Forms\Components\Section::make(__('categories.description'))
                     ->schema([
                         Forms\Components\Textarea::make('description')
                             ->label(__('categories.description'))
@@ -206,7 +206,7 @@ class CategoryResource extends Resource
                     ->visible(fn($record): bool => $record && $record->type === 'expense'),
 
                 Tables\Columns\TextColumn::make('monthly_spending')
-                    ->label('Monthly Spending')
+                    ->label(__('categories.monthly_spending'))
                     ->money('USD')
                     ->state(function (Category $record): float {
                         return $record->getMonthlySpending();
@@ -217,7 +217,7 @@ class CategoryResource extends Resource
                     ->visible(fn($record): bool => $record && $record->type === 'expense'),
 
                 Tables\Columns\TextColumn::make('budget_utilization')
-                    ->label('Budget Usage')
+                    ->label(__('categories.budget_usage'))
                     ->state(function (Category $record): string {
                         if (!$record->budget_limit) {
                             return '—';
@@ -235,7 +235,7 @@ class CategoryResource extends Resource
                     ->boolean(),
 
                 Tables\Columns\TextColumn::make('transactions_count')
-                    ->label('Transactions')
+                    ->label(__('categories.transactions'))
                     ->counts('transactions')
                     ->badge()
                     ->color('primary'),
@@ -273,7 +273,7 @@ class CategoryResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\Action::make('view_transactions')
                         ->label('View Transactions')

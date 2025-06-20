@@ -46,7 +46,7 @@ class WalletResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Wallet Information')
+                Forms\Components\Section::make(__('wallets.wallet_information'))
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label(__('wallets.name'))
@@ -71,16 +71,16 @@ class WalletResource extends Resource
                             ->default('USD')
                             ->required()
                             ->maxLength(3)
-                            ->helperText('3-letter currency code (e.g., USD, EUR, GBP)'),
+                            ->helperText(__('wallets.currency_helper')),
 
                         Forms\Components\Toggle::make('is_active')
                             ->label(__('wallets.is_active'))
                             ->default(true)
-                            ->helperText('Inactive wallets will be hidden from transaction forms'),
+                            ->helperText(__('wallets.active_helper')),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Balance Information')
+                Forms\Components\Section::make(__('wallets.balance_information'))
                     ->schema([
                         Forms\Components\TextInput::make('initial_balance')
                             ->label(__('wallets.initial_balance'))
@@ -88,13 +88,13 @@ class WalletResource extends Resource
                             ->default(0)
                             ->prefix('$')
                             ->step(0.01)
-                            ->helperText('The starting balance for this wallet'),
+                            ->helperText(__('wallets.initial_balance_helper')),
 
                         Forms\Components\Placeholder::make('current_balance')
-                            ->label('Current Balance')
+                            ->label(__('wallets.current_balance'))
                             ->content(function (?Wallet $record): string {
                                 if (!$record) {
-                                    return 'Will be set to initial balance';
+                                    return __('wallets.balance_placeholder');
                                 }
                                 return '$' . number_format($record->balance, 2);
                             })
@@ -102,13 +102,13 @@ class WalletResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Description')
+                Forms\Components\Section::make(__('wallets.description'))
                     ->schema([
                         Forms\Components\Textarea::make('description')
                             ->label(__('wallets.description'))
                             ->maxLength(1000)
                             ->rows(3)
-                            ->placeholder('Optional description for this wallet...'),
+                            ->placeholder(__('wallets.description_placeholder')),
                     ])
                     ->collapsible(),
             ]);
@@ -166,7 +166,7 @@ class WalletResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('transactions_count')
-                    ->label('Transactions')
+                    ->label(__('wallets.transactions'))
                     ->counts('transactions')
                     ->badge()
                     ->color('primary'),
@@ -195,11 +195,11 @@ class WalletResource extends Resource
                 Tables\Filters\Filter::make('balance_range')
                     ->form([
                         Forms\Components\TextInput::make('min_balance')
-                            ->label('Minimum Balance')
+                            ->label(__('wallets.minimum_balance'))
                             ->numeric()
                             ->prefix('$'),
                         Forms\Components\TextInput::make('max_balance')
-                            ->label('Maximum Balance')
+                            ->label(__('wallets.maximum_balance'))
                             ->numeric()
                             ->prefix('$'),
                     ])
@@ -218,17 +218,17 @@ class WalletResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\Action::make('view_transactions')
-                        ->label('View Transactions')
+                        ->label(__('wallets.view_transactions'))
                         ->icon('heroicon-o-banknotes')
                         ->url(
                             fn(Wallet $record): string =>
                             '/finances/transactions?tableFilters[wallet][value]=' . $record->id
                         ),
                 ])
-                    ->label('Actions')
+                    ->label(__('wallets.actions'))
                     ->icon('heroicon-m-ellipsis-vertical')
                     ->size('sm')
                     ->color('gray')
@@ -237,12 +237,12 @@ class WalletResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\BulkAction::make('activate')
-                        ->label('Activate Selected')
+                        ->label(__('wallets.activate_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->action(fn($records) => $records->each->update(['is_active' => true]))
                         ->deselectRecordsAfterCompletion(),
                     Tables\Actions\BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
+                        ->label(__('wallets.deactivate_selected'))
                         ->icon('heroicon-o-x-circle')
                         ->action(fn($records) => $records->each->update(['is_active' => false]))
                         ->deselectRecordsAfterCompletion(),

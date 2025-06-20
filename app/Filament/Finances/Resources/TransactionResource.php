@@ -46,7 +46,7 @@ class TransactionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Transaction Details')
+                Forms\Components\Section::make(__('transactions.transaction_details'))
                     ->schema([
                         Forms\Components\Select::make('type')
                             ->label(__('transactions.type'))
@@ -80,7 +80,7 @@ class TransactionResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Category & Wallet')
+                Forms\Components\Section::make(__('transactions.category_and_wallet'))
                     ->schema([
                         Forms\Components\Select::make('category_id')
                             ->label(__('transactions.category'))
@@ -144,17 +144,17 @@ class TransactionResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Additional Information')
+                Forms\Components\Section::make(__('transactions.additional_information'))
                     ->schema([
                         Forms\Components\TextInput::make('reference')
                             ->label(__('transactions.reference'))
                             ->maxLength(255)
-                            ->helperText('Auto-generated if left empty'),
+                            ->helperText(__('transactions.reference_helper')),
 
                         Forms\Components\TagsInput::make('tags')
                             ->label(__('transactions.tags'))
-                            ->placeholder('Add tags...')
-                            ->helperText('Press Enter to add tags'),
+                            ->placeholder(__('transactions.tags_placeholder'))
+                            ->helperText(__('transactions.tags_helper')),
 
                         Forms\Components\FileUpload::make('receipt')
                             ->label(__('transactions.receipt'))
@@ -173,12 +173,12 @@ class TransactionResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Recurring Transaction')
+                Forms\Components\Section::make(__('transactions.recurring_transaction'))
                     ->schema([
                         Forms\Components\Toggle::make('is_recurring')
                             ->label(__('transactions.is_recurring'))
                             ->live()
-                            ->helperText('Make this transaction repeat automatically'),
+                            ->helperText(__('transactions.recurring_helper')),
 
                         Forms\Components\Select::make('recurring_frequency')
                             ->label(__('transactions.recurring_frequency'))
@@ -198,7 +198,7 @@ class TransactionResource extends Resource
                             ->required()
                             ->minDate(now()->addDay())
                             ->visible(fn(Get $get): bool => $get('is_recurring'))
-                            ->helperText('When should the next occurrence be created?'),
+                            ->helperText(__('transactions.next_occurrence_helper')),
                     ])
                     ->columns(3)
                     ->collapsible(),
