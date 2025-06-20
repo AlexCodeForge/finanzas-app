@@ -72,11 +72,6 @@ class FinancialOverviewWidget extends BaseWidget
                 ->description($expenseChange >= 0 ? '+' . number_format($expenseChange, 1) . '% from last month' : number_format($expenseChange, 1) . '% from last month')
                 ->descriptionIcon($expenseChange >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($expenseChange >= 0 ? 'danger' : 'success'),
-
-            Stat::make(__('finance.net_worth'), '$' . number_format($netWorth, 2))
-                ->description(__('finance.monthly_income') . ' - ' . __('finance.monthly_expenses'))
-                ->descriptionIcon($netWorth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($netWorth >= 0 ? 'success' : 'danger'),
         ];
     }
 }

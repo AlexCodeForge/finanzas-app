@@ -238,7 +238,7 @@ class Dashboard extends BaseDashboard
     return [
       // Financial Overview Stats
       \App\Filament\Finances\Widgets\FinancialOverviewWidget::class,
-      \App\Filament\Finances\Widgets\AllWalletsTotalWidget::class,
+      \App\Filament\Finances\Widgets\PreferredWalletsWidget::class,
 
       // Charts Row
       \App\Filament\Finances\Widgets\IncomeExpenseChartWidget::class,

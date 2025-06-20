@@ -149,10 +149,10 @@ class ViewWallet extends ViewRecord
                     ->icon('heroicon-o-banknotes')
                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
 
-                  Infolists\Components\TextEntry::make('current_balance')
+                  Infolists\Components\TextEntry::make('balance')
                     ->label(__('wallets.current_balance'))
                     ->money('USD')
-                    ->color(fn(Wallet $record): string => $record->current_balance >= 0 ? 'success' : 'danger')
+                    ->color(fn(Wallet $record): string => $record->balance >= 0 ? 'success' : 'danger')
                     ->icon('heroicon-o-wallet')
                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
                     ->weight(FontWeight::Bold),
@@ -160,13 +160,13 @@ class ViewWallet extends ViewRecord
                   Infolists\Components\TextEntry::make('balance_change')
                     ->label('Balance Change')
                     ->money('USD')
-                    ->state(fn(Wallet $record): float => $record->current_balance - $record->initial_balance)
+                    ->state(fn(Wallet $record): float => $record->balance - $record->initial_balance)
                     ->color(function (Wallet $record): string {
-                      $change = $record->current_balance - $record->initial_balance;
+                      $change = $record->balance - $record->initial_balance;
                       return $change >= 0 ? 'success' : 'danger';
                     })
                     ->icon(function (Wallet $record): string {
-                      $change = $record->current_balance - $record->initial_balance;
+                      $change = $record->balance - $record->initial_balance;
                       return $change >= 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down';
                     })
                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large),

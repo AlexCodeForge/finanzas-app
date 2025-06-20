@@ -27,6 +27,10 @@ class User extends Authenticatable
         'date_format',
         'theme',
         'notification_preferences',
+        'preferred_wallet_1_id',
+        'preferred_wallet_2_id',
+        'preferred_wallet_3_id',
+        'language',
     ];
 
     /**
@@ -75,5 +79,35 @@ class User extends Authenticatable
     public function categories()
     {
         return $this->hasMany(Category::class);
+    }
+
+    /**
+     * Get the preferred wallets for dashboard display.
+     */
+    public function preferredWallet1()
+    {
+        return $this->belongsTo(Wallet::class, 'preferred_wallet_1_id');
+    }
+
+    public function preferredWallet2()
+    {
+        return $this->belongsTo(Wallet::class, 'preferred_wallet_2_id');
+    }
+
+    public function preferredWallet3()
+    {
+        return $this->belongsTo(Wallet::class, 'preferred_wallet_3_id');
+    }
+
+    /**
+     * Get all preferred wallets as a collection.
+     */
+    public function getPreferredWalletsAttribute()
+    {
+        return collect([
+            $this->preferredWallet1,
+            $this->preferredWallet2,
+            $this->preferredWallet3,
+        ])->filter();
     }
 }

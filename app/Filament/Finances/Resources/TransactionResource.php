@@ -282,7 +282,7 @@ class TransactionResource extends Resource
                     ->falseIcon('heroicon-o-minus')
                     ->trueColor('info')
                     ->falseColor('gray')
-                    ->visibleFrom('xl'),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('receipt')
                     ->label('Receipt')
@@ -291,7 +291,7 @@ class TransactionResource extends Resource
                     ->falseIcon('heroicon-o-minus')
                     ->trueColor('success')
                     ->falseColor('gray')
-                    ->visibleFrom('xl'),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
