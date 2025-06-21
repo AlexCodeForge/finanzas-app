@@ -9,7 +9,7 @@ return [
   'parent_category' => 'Parent Category',
   'color' => 'Color',
   'icon' => 'Icon',
-  'budget_limit' => 'Budget Limit',
+  'budget_limit' => 'Monthly Budget Limit',
   'is_active' => 'Active',
   'active' => 'Active',
   'created_at' => 'Created At',
@@ -36,4 +36,16 @@ return [
   // Status messages
   'current_month_status' => 'Current Month Status',
   'no_budget_set' => 'No budget limit set',
+
+  // Stats widget
+  'total_categories' => 'Total Categories',
+  'all_categories' => 'All categories in system',
+  'active_categories' => 'Active Categories',
+  'currently_active' => 'Currently active',
+  'with_budget' => 'With Budget',
+  'have_budget_limits' => 'Have budget limits set',
+  'total_budget' => 'Total Monthly Budget',
+  'combined_budget_limits' => 'Combined monthly budget limits',
+  'over_budget' => 'Over Budget',
+  'categories_exceeding_budget' => 'Categories exceeding their monthly budget',
 ];

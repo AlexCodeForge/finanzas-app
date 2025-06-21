@@ -103,11 +103,30 @@ class Dashboard extends BaseDashboard
             ->schema([
               Forms\Components\Select::make('category_id')
                 ->label(__('transactions.category'))
-                ->options(function () {
+                ->options(function (Get $get) {
+                  $transactionType = $get('type');
+                  if (!$transactionType || $transactionType === 'transfer') {
+                    return [];
+                  }
+
                   return Category::where('user_id', Filament::auth()->id())
+                    ->where('type', $transactionType)
+                    ->where('is_active', true)
                     ->pluck('name', 'id');
                 })
                 ->preload()
+                ->live()
+                ->placeholder(function (Get $get) {
+                  $transactionType = $get('type');
+                  if (!$transactionType) {
+                    return __('transactions.select_type_first');
+                  }
+                  if ($transactionType === 'transfer') {
+                    return __('transactions.no_category_for_transfer');
+                  }
+                  return __('transactions.select_category_for_type', ['type' => __('transactions.' . $transactionType)]);
+                })
+                ->helperText(__('transactions.category_filtered_by_type'))
                 ->createOptionForm([
                   Forms\Components\TextInput::make('name')
                     ->required()
@@ -116,9 +135,23 @@ class Dashboard extends BaseDashboard
                     ->default('#10B981'),
                   Forms\Components\TextInput::make('icon')
                     ->default('heroicon-o-folder'),
+                  Forms\Components\Select::make('type')
+                    ->label(__('categories.type'))
+                    ->options([
+                      'income' => __('categories.income'),
+                      'expense' => __('categories.expense'),
+                    ])
+                    ->required()
+                    ->default(function ($livewire) {
+                      return $livewire->mountedActionsData[0]['type'] ?? null;
+                    }),
                 ])
-                ->createOptionUsing(function (array $data) {
+                ->createOptionUsing(function (array $data, Get $get) {
                   $data['user_id'] = Filament::auth()->id();
+                  // If type is not set in the form, use the transaction type
+                  if (!isset($data['type'])) {
+                    $data['type'] = $get('type');
+                  }
                   return Category::create($data)->id;
                 })
                 ->visible(fn(Get $get): bool => $get('type') !== 'transfer'),
@@ -295,8 +328,20 @@ class Dashboard extends BaseDashboard
           ->where('balance', '>', 0)
           ->count();
 
+        // Check for category spending data this month
+        $categoryTransactions = Transaction::where('user_id', $userId)
+          ->where('type', 'expense')
+          ->whereMonth('date', now()->month)
+          ->whereNotNull('category_id')
+          ->count();
+
+        // Add the two doughnut charts side by side first
         if ($walletsWithBalance >= 2) {
           $widgets[] = \App\Filament\Finances\Widgets\WalletBreakdownWidget::class;
+        }
+
+        if ($categoryTransactions >= 3) {
+          $widgets[] = \App\Filament\Finances\Widgets\CategorySpendingWidget::class;
         }
 
         // Check for income/expense data in last 6 months
@@ -305,29 +350,9 @@ class Dashboard extends BaseDashboard
           ->whereIn('type', ['income', 'expense'])
           ->count();
 
+        // Add the income/expense chart below the doughnut charts
         if ($monthlyTransactions >= 5) {
           $widgets[] = \App\Filament\Finances\Widgets\IncomeExpenseChartWidget::class;
-        }
-
-        // Check for category spending data this month
-        $categoryTransactions = Transaction::where('user_id', $userId)
-          ->where('type', 'expense')
-          ->whereMonth('date', now()->month)
-          ->whereNotNull('category_id')
-          ->count();
-
-        if ($categoryTransactions >= 3) {
-          $widgets[] = \App\Filament\Finances\Widgets\CategorySpendingWidget::class;
-        }
-
-        // Only show advanced trends if there's data across multiple months
-        $monthsWithData = Transaction::where('user_id', $userId)
-          ->selectRaw('YEAR(date) as year, MONTH(date) as month')
-          ->groupBy('year', 'month')
-          ->count();
-
-        if ($monthsWithData >= 3) {
-          $widgets[] = \App\Filament\Finances\Widgets\MonthlyTrendsWidget::class;
         }
       }
 

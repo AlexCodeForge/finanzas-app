@@ -6,66 +6,84 @@ use App\Models\Transaction;
 use App\Models\Category;
 use Filament\Widgets\ChartWidget;
 use Filament\Facades\Filament;
+use Carbon\Carbon;
 
 class CategorySpendingWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Monthly Spending by Category';
+    protected static ?string $heading = null;
+    protected static ?int $sort = 2;
+
+    public function getHeading(): string
+    {
+        return __('finance.monthly_spending_by_category');
+    }
 
     protected static ?string $pollingInterval = '60s';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int | string | array $columnSpan = [
+        'default' => 'full',
+        'sm' => 'full',
+        'md' => 'full',
+        'lg' => 3,
+        'xl' => 3,
+    ];
 
     protected static ?string $maxHeight = '400px';
+
+    public function getDescription(): ?string
+    {
+        $userId = Filament::auth()->id();
+        $currentMonth = Carbon::now();
+
+        $totalSpending = Transaction::where('user_id', $userId)
+            ->where('type', 'expense')
+            ->whereMonth('date', $currentMonth->month)
+            ->whereYear('date', $currentMonth->year)
+            ->whereNotNull('category_id')
+            ->sum('amount');
+
+        return 'Total: $' . number_format($totalSpending, 2);
+    }
 
     protected function getData(): array
     {
         $userId = Filament::auth()->id();
+        $currentMonth = Carbon::now();
 
-        // Get expense transactions for current month grouped by category
         $categorySpending = Transaction::where('user_id', $userId)
             ->where('type', 'expense')
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year)
-            ->with('category')
-            ->get()
+            ->whereMonth('date', $currentMonth->month)
+            ->whereYear('date', $currentMonth->year)
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, SUM(amount) as total_amount')
             ->groupBy('category_id')
-            ->map(function ($transactions) {
-                return [
-                    'name' => $transactions->first()->category->name ?? 'Uncategorized',
-                    'total' => $transactions->sum('amount')
-                ];
-            })
-            ->sortByDesc('total')
-            ->take(6); // Top 6 categories for better readability
+            ->orderBy('total_amount', 'desc')
+            ->with('category')
+            ->get();
+
+        if ($categorySpending->isEmpty()) {
+            return [
+                'datasets' => [],
+                'labels' => [],
+            ];
+        }
 
         $labels = [];
         $data = [];
-        $colors = [
-            '#DC2626', // Red
-            '#EA580C', // Orange-600
-            '#D97706', // Amber-600
-            '#CA8A04', // Yellow-600
-            '#65A30D', // Lime-600
-            '#16A34A', // Green-600
-        ];
+        $colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#F97316'];
 
-        foreach ($categorySpending as $category) {
-            $labels[] = $category['name'];
-            $data[] = (float) $category['total'];
+        foreach ($categorySpending as $index => $spending) {
+            $labels[] = $spending->category->name ?? 'Uncategorized';
+            $data[] = (float) $spending->total_amount;
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Amount Spent',
                     'data' => $data,
                     'backgroundColor' => array_slice($colors, 0, count($data)),
-                    'borderWidth' => 0,
-                    'borderRadius' => 6,
-                    'borderSkipped' => false,
-                    'hoverBackgroundColor' => array_map(function ($color) {
-                        return $color . 'CC'; // Add opacity
-                    }, array_slice($colors, 0, count($data))),
+                    'borderWidth' => 2,
+                    'borderColor' => '#ffffff',
                 ],
             ],
             'labels' => $labels,
@@ -74,7 +92,7 @@ class CategorySpendingWidget extends ChartWidget
 
     protected function getType(): string
     {
-        return 'bar';
+        return 'doughnut';
     }
 
     protected function getOptions(): array
@@ -84,46 +102,24 @@ class CategorySpendingWidget extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
-                    'display' => false,
-                ],
-                'tooltip' => [
-                    'backgroundColor' => 'rgba(0, 0, 0, 0.8)',
-                    'titleColor' => '#ffffff',
-                    'bodyColor' => '#ffffff',
-                    'borderColor' => 'rgba(255, 255, 255, 0.1)',
-                    'borderWidth' => 1,
-                    'cornerRadius' => 8,
-                    'callbacks' => [
-                        'label' => 'function(context) { return "Spent: $" + context.parsed.y.toLocaleString(); }',
+                    'display' => true,
+                    'position' => 'bottom',
+                    'labels' => [
+                        'usePointStyle' => true,
+                        'padding' => 15,
+                        'font' => [
+                            'size' => 11,
+                        ],
                     ],
                 ],
             ],
+            'cutout' => '65%',
             'scales' => [
                 'x' => [
-                    'grid' => [
-                        'display' => false,
-                    ],
-                    'ticks' => [
-                        'maxRotation' => 45,
-                        'minRotation' => 0,
-                        'font' => [
-                            'size' => 11,
-                            'weight' => '500',
-                        ],
-                    ],
+                    'display' => false,
                 ],
                 'y' => [
-                    'beginAtZero' => true,
-                    'grid' => [
-                        'color' => 'rgba(0, 0, 0, 0.05)',
-                        'drawBorder' => false,
-                    ],
-                    'ticks' => [
-                        'font' => [
-                            'size' => 11,
-                        ],
-                        'callback' => 'function(value) { return "$" + (value/1000).toFixed(0) + "k"; }',
-                    ],
+                    'display' => false,
                 ],
             ],
         ];

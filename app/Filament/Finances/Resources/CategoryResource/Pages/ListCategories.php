@@ -16,4 +16,11 @@ class ListCategories extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Finances\Widgets\CategoryStatsWidget::class,
+        ];
+    }
 }

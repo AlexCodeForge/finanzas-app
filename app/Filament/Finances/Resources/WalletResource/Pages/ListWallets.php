@@ -16,4 +16,11 @@ class ListWallets extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Finances\Widgets\WalletStatsWidget::class,
+        ];
+    }
 }

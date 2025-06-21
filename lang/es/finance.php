@@ -64,4 +64,9 @@ return [
   'track_progress' => 'Paso 3',
   'view_analytics' => 'Ver Analíticas',
   'analytics_description' => 'Vea gráficos e insights después de agregar transacciones',
+
+  // Widget titles
+  'wallet_balance_breakdown' => 'Desglose de Balance de Billeteras',
+  'income_vs_expense_trends' => 'Tendencias de Ingresos vs Gastos',
+  'monthly_spending_by_category' => 'Gasto Mensual por Categoría',
 ];

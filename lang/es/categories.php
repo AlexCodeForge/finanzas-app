@@ -9,8 +9,9 @@ return [
   'parent_category' => 'Categoría Padre',
   'color' => 'Color',
   'icon' => 'Icono',
-  'budget_limit' => 'Límite de Presupuesto',
+  'budget_limit' => 'Límite de Presupuesto Mensual',
   'is_active' => 'Activo',
+  'active' => 'Activo',
   'created_at' => 'Creado En',
   'updated_at' => 'Actualizado En',
   'income' => 'Ingreso',
@@ -28,11 +29,23 @@ return [
   'budget_management' => 'Gestión de Presupuesto',
 
   // Helper texts
-  'parent_helper' => 'Opcional: Seleccione una categoría padre para crear una subcategoría',
-  'icon_helper' => 'Elija un icono que represente esta categoría',
-  'budget_helper' => 'Establezca un límite de gasto mensual para esta categoría',
+  'parent_helper' => 'Opcional: Selecciona una categoría padre para crear una subcategoría',
+  'icon_helper' => 'Elige un icono que represente esta categoría',
+  'budget_helper' => 'Establece un límite de gasto mensual para esta categoría',
 
   // Status messages
   'current_month_status' => 'Estado del Mes Actual',
-  'no_budget_set' => 'No se estableció límite de presupuesto',
+  'no_budget_set' => 'No se ha establecido límite de presupuesto',
+
+  // Stats widget
+  'total_categories' => 'Total de Categorías',
+  'all_categories' => 'Todas las categorías del sistema',
+  'active_categories' => 'Categorías Activas',
+  'currently_active' => 'Actualmente activas',
+  'with_budget' => 'Con Presupuesto',
+  'have_budget_limits' => 'Tienen límites de presupuesto establecidos',
+  'total_budget' => 'Presupuesto Mensual Total',
+  'combined_budget_limits' => 'Límites de presupuesto mensual combinados',
+  'over_budget' => 'Sobre Presupuesto',
+  'categories_exceeding_budget' => 'Categorías que exceden su presupuesto mensual',
 ];

@@ -64,4 +64,9 @@ return [
   'track_progress' => 'Step 3',
   'view_analytics' => 'View Analytics',
   'analytics_description' => 'See charts and insights after adding transactions',
+
+  // Widget titles
+  'wallet_balance_breakdown' => 'Wallet Balance Breakdown',
+  'income_vs_expense_trends' => 'Income vs Expense Trends',
+  'monthly_spending_by_category' => 'Monthly Spending by Category',
 ];

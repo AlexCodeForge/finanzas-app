@@ -52,4 +52,20 @@ return [
     'tags_helper' => 'Presione Enter para agregar etiquetas',
     'recurring_helper' => 'Hacer que esta transacción se repita automáticamente',
     'next_occurrence_helper' => '¿Cuándo debe crearse la próxima ocurrencia?',
+    'category_filtered_by_type' => 'Solo se muestran categorías que coinciden con el tipo de transacción',
+    'select_type_first' => 'Selecciona el tipo de transacción primero',
+    'no_category_for_transfer' => 'Las transferencias no usan categorías',
+    'select_category_for_type' => 'Selecciona una categoría de :type',
+
+    // Stats widget
+    'total_transactions' => 'Total de Transacciones',
+    'all_transactions' => 'Todas las transacciones',
+    'total_income' => 'Total de Ingresos',
+    'money_received' => 'Dinero recibido',
+    'total_expenses' => 'Total de Gastos',
+    'money_spent' => 'Dinero gastado',
+    'net_balance' => 'Balance Neto',
+    'income_minus_expenses' => 'Ingresos menos gastos',
+    'positive_balance' => 'Balance positivo',
+    'negative_balance' => 'Balance negativo',
 ];

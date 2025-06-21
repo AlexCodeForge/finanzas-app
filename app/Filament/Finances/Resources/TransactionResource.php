@@ -84,12 +84,31 @@ class TransactionResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('category_id')
                             ->label(__('transactions.category'))
-                            ->options(function () {
+                            ->options(function (Get $get) {
+                                $transactionType = $get('type');
+                                if (!$transactionType || $transactionType === 'transfer') {
+                                    return [];
+                                }
+
                                 return Category::where('user_id', Filament::auth()->id())
+                                    ->where('type', $transactionType)
+                                    ->where('is_active', true)
                                     ->pluck('name', 'id');
                             })
                             ->searchable()
                             ->preload()
+                            ->live()
+                            ->placeholder(function (Get $get) {
+                                $transactionType = $get('type');
+                                if (!$transactionType) {
+                                    return __('transactions.select_type_first');
+                                }
+                                if ($transactionType === 'transfer') {
+                                    return __('transactions.no_category_for_transfer');
+                                }
+                                return __('transactions.select_category_for_type', ['type' => __('transactions.' . $transactionType)]);
+                            })
+                            ->helperText(__('transactions.category_filtered_by_type'))
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
                                     ->required()
@@ -98,9 +117,23 @@ class TransactionResource extends Resource
                                     ->default('#10B981'),
                                 Forms\Components\TextInput::make('icon')
                                     ->default('heroicon-o-folder'),
+                                Forms\Components\Select::make('type')
+                                    ->label(__('categories.type'))
+                                    ->options([
+                                        'income' => __('categories.income'),
+                                        'expense' => __('categories.expense'),
+                                    ])
+                                    ->required()
+                                    ->default(function ($livewire) {
+                                        return $livewire->data['type'] ?? null;
+                                    }),
                             ])
-                            ->createOptionUsing(function (array $data) {
+                            ->createOptionUsing(function (array $data, Get $get) {
                                 $data['user_id'] = Filament::auth()->id();
+                                // If type is not set in the form, use the transaction type
+                                if (!isset($data['type'])) {
+                                    $data['type'] = $get('type');
+                                }
                                 return Category::create($data)->id;
                             })
                             ->visible(fn(Get $get): bool => $get('type') !== 'transfer'),
@@ -408,5 +441,12 @@ class TransactionResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         return 'primary';
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            TransactionResource\Widgets\TransactionStatsWidget::class,
+        ];
     }
 }

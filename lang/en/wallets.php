@@ -46,4 +46,13 @@ return [
   'activate_selected' => 'Activate Selected',
   'deactivate_selected' => 'Deactivate Selected',
   'actions' => 'Actions',
+
+  // Stats widget
+  'total_wallets' => 'Total Wallets',
+  'all_wallets' => 'All wallets in system',
+  'active_wallets' => 'Active Wallets',
+  'currently_active' => 'Currently active',
+  'combined_balance' => 'Combined balance',
+  'average_balance' => 'Average Balance',
+  'previous_month_balance' => 'Previous Month Balance',
 ];

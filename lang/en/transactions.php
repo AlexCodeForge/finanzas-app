@@ -52,4 +52,20 @@ return [
     'tags_helper' => 'Press Enter to add tags',
     'recurring_helper' => 'Make this transaction repeat automatically',
     'next_occurrence_helper' => 'When should the next occurrence be created?',
+    'category_filtered_by_type' => 'Only categories matching the transaction type are shown',
+    'select_type_first' => 'Select transaction type first',
+    'no_category_for_transfer' => 'Transfers do not use categories',
+    'select_category_for_type' => 'Select a :type category',
+
+    // Stats widget
+    'total_transactions' => 'Total Transactions',
+    'all_transactions' => 'All transactions',
+    'total_income' => 'Total Income',
+    'money_received' => 'Money received',
+    'total_expenses' => 'Total Expenses',
+    'money_spent' => 'Money spent',
+    'net_balance' => 'Net Balance',
+    'income_minus_expenses' => 'Income minus expenses',
+    'positive_balance' => 'Positive balance',
+    'negative_balance' => 'Negative balance',
 ];

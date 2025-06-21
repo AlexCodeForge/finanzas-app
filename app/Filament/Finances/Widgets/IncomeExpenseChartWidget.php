@@ -9,7 +9,13 @@ use Carbon\Carbon;
 
 class IncomeExpenseChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Income vs Expense Trends';
+    protected static ?string $heading = null;
+    protected static ?int $sort = 3;
+
+    public function getHeading(): string
+    {
+        return __('finance.income_vs_expense_trends');
+    }
 
     protected static ?string $pollingInterval = '60s';
 
@@ -112,14 +118,21 @@ class IncomeExpenseChartWidget extends ChartWidget
                     ],
                 ],
                 'tooltip' => [
+                    'enabled' => true,
                     'backgroundColor' => 'rgba(0, 0, 0, 0.8)',
                     'titleColor' => '#ffffff',
                     'bodyColor' => '#ffffff',
                     'borderColor' => 'rgba(255, 255, 255, 0.1)',
                     'borderWidth' => 1,
                     'cornerRadius' => 8,
-                    'callbacks' => [
-                        'label' => 'function(context) { return context.dataset.label + ": $" + context.parsed.y.toLocaleString(); }',
+                    'displayColors' => true,
+                    'bodyFont' => [
+                        'size' => 13,
+                        'weight' => 'bold',
+                    ],
+                    'titleFont' => [
+                        'size' => 14,
+                        'weight' => 'bold',
                     ],
                 ],
             ],
@@ -144,7 +157,7 @@ class IncomeExpenseChartWidget extends ChartWidget
                         'font' => [
                             'size' => 11,
                         ],
-                        'callback' => 'function(value) { return "$" + (value/1000).toFixed(0) + "k"; }',
+                        'callback' => null,
                     ],
                 ],
             ],

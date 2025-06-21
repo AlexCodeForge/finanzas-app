@@ -8,13 +8,36 @@ use Filament\Facades\Filament;
 
 class WalletBreakdownWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Wallet Balance Breakdown';
+    protected static ?string $heading = null;
+    protected static ?int $sort = 1;
 
-    protected static ?string $pollingInterval = '30s';
+    public function getHeading(): string
+    {
+        return __('finance.wallet_balance_breakdown');
+    }
 
-    protected int | string | array $columnSpan = 'full';
+    protected static ?string $pollingInterval = '60s';
+
+    protected int | string | array $columnSpan = [
+        'default' => 'full',
+        'sm' => 'full',
+        'md' => 'full',
+        'lg' => 3,
+        'xl' => 3,
+    ];
 
     protected static ?string $maxHeight = '400px';
+
+    public function getDescription(): ?string
+    {
+        $userId = Filament::auth()->id();
+        $totalBalance = Wallet::where('user_id', $userId)
+            ->where('is_active', true)
+            ->where('balance', '>', 0)
+            ->sum('balance');
+
+        return 'Total: $' . number_format($totalBalance, 2);
+    }
 
     protected function getData(): array
     {
@@ -25,34 +48,38 @@ class WalletBreakdownWidget extends ChartWidget
             ->where('balance', '>', 0)
             ->get();
 
+        if ($wallets->isEmpty()) {
+            return [
+                'datasets' => [],
+                'labels' => [],
+            ];
+        }
+
         $labels = [];
         $data = [];
-        $colors = [
-            '#3B82F6', // Blue
-            '#F59E0B', // Amber
-            '#10B981', // Emerald
-            '#EF4444', // Red
-            '#8B5CF6', // Violet
-            '#F97316', // Orange
-            '#06B6D4', // Cyan
-            '#84CC16', // Lime
-        ];
+        $colors = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#F97316'];
 
         foreach ($wallets as $index => $wallet) {
-            $labels[] = $wallet->name;
+            $walletType = match ($wallet->type) {
+                'bank_account' => 'Bank Account',
+                'cash' => 'Cash',
+                'credit_card' => 'Credit Card',
+                'savings' => 'Savings',
+                'investment' => 'Investment',
+                default => 'Other'
+            };
+
+            $labels[] = $wallet->name . ' (' . $walletType . ')';
             $data[] = (float) $wallet->balance;
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Balance',
                     'data' => $data,
                     'backgroundColor' => array_slice($colors, 0, count($data)),
-                    'borderWidth' => 3,
+                    'borderWidth' => 2,
                     'borderColor' => '#ffffff',
-                    'hoverBorderWidth' => 4,
-                    'hoverOffset' => 8,
                 ],
             ],
             'labels' => $labels,
@@ -74,31 +101,21 @@ class WalletBreakdownWidget extends ChartWidget
                     'display' => true,
                     'position' => 'bottom',
                     'labels' => [
-                        'padding' => 20,
                         'usePointStyle' => true,
-                        'pointStyle' => 'circle',
+                        'padding' => 15,
                         'font' => [
                             'size' => 11,
-                            'weight' => '500',
                         ],
-                    ],
-                ],
-                'tooltip' => [
-                    'backgroundColor' => 'rgba(0, 0, 0, 0.8)',
-                    'titleColor' => '#ffffff',
-                    'bodyColor' => '#ffffff',
-                    'borderColor' => 'rgba(255, 255, 255, 0.1)',
-                    'borderWidth' => 1,
-                    'cornerRadius' => 8,
-                    'callbacks' => [
-                        'label' => 'function(context) { var total = context.dataset.data.reduce((a, b) => a + b, 0); var percentage = ((context.parsed / total) * 100).toFixed(1); return context.label + ": $" + context.parsed.toLocaleString() + " (" + percentage + "%)"; }',
                     ],
                 ],
             ],
             'cutout' => '65%',
-            'elements' => [
-                'arc' => [
-                    'borderWidth' => 0,
+            'scales' => [
+                'x' => [
+                    'display' => false,
+                ],
+                'y' => [
+                    'display' => false,
                 ],
             ],
         ];
