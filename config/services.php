@@ -35,4 +35,26 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | OAuth Services
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for OAuth providers used with Laravel Socialite
+    | Uses multi-panel callback routes that work for both admin and finances panels
+    |
+    */
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => 'http://localhost:8000/oauth/callback/google',
+    ],
+
+    'discord' => [
+        'client_id' => env('DISCORD_CLIENT_ID'),
+        'client_secret' => env('DISCORD_CLIENT_SECRET'),
+        'redirect' => 'http://localhost:8000/oauth/callback/discord',
+    ],
+
 ];
