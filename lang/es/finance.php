@@ -1,7 +1,7 @@
 <?php
 
 return [
-  'title' => 'Finanzas Personales',
+  'title' => 'Finanzas',
   'dashboard' => 'Tablero',
   'total_balance' => 'Balance Total',
   'monthly_income' => 'Ingresos Mensuales',

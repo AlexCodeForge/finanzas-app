@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,7 @@ use App\Notifications\BudgetExceeded;
 
 class Transaction extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -68,6 +69,10 @@ class Transaction extends Model
         static::updated(function ($transaction) {
             // Update wallet balances when transaction is modified
             if ($transaction->wasChanged(['amount', 'type', 'wallet_id', 'from_wallet_id', 'to_wallet_id'])) {
+                // First reverse the old balance changes using original values
+                $transaction->reverseWalletBalances($transaction->getOriginal());
+
+                // Then apply the new balance changes
                 $transaction->updateWalletBalances();
             }
         });
@@ -121,27 +126,44 @@ class Transaction extends Model
     }
 
     /**
-     * Reverse wallet balance changes (for deletions).
+     * Reverse wallet balance changes (for deletions and updates).
      */
-    public function reverseWalletBalances(): void
+    public function reverseWalletBalances(?array $originalValues = null): void
     {
-        switch ($this->type) {
+        // Use original values if provided (for updates), otherwise use current values (for deletions)
+        $type = $originalValues['type'] ?? $this->type;
+        $amount = $originalValues['amount'] ?? $this->amount;
+        $walletId = $originalValues['wallet_id'] ?? $this->wallet_id;
+        $fromWalletId = $originalValues['from_wallet_id'] ?? $this->from_wallet_id;
+        $toWalletId = $originalValues['to_wallet_id'] ?? $this->to_wallet_id;
+
+        switch ($type) {
             case 'income':
-                if ($this->wallet) {
-                    $this->wallet->decrement('balance', $this->amount);
+                if ($walletId) {
+                    $wallet = Wallet::find($walletId);
+                    if ($wallet) {
+                        $wallet->decrement('balance', $amount);
+                    }
                 }
                 break;
 
             case 'expense':
-                if ($this->wallet) {
-                    $this->wallet->increment('balance', $this->amount);
+                if ($walletId) {
+                    $wallet = Wallet::find($walletId);
+                    if ($wallet) {
+                        $wallet->increment('balance', $amount);
+                    }
                 }
                 break;
 
             case 'transfer':
-                if ($this->fromWallet && $this->toWallet) {
-                    $this->fromWallet->increment('balance', $this->amount);
-                    $this->toWallet->decrement('balance', $this->amount);
+                if ($fromWalletId && $toWalletId) {
+                    $fromWallet = Wallet::find($fromWalletId);
+                    $toWallet = Wallet::find($toWalletId);
+                    if ($fromWallet && $toWallet) {
+                        $fromWallet->increment('balance', $amount);
+                        $toWallet->decrement('balance', $amount);
+                    }
                 }
                 break;
         }
@@ -231,6 +253,46 @@ class Transaction extends Model
             'tags.*' => ['string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
+    }
+
+    /**
+     * Additional business logic validation.
+     */
+    public static function validateBusinessLogic(array $data): array
+    {
+        $errors = [];
+
+        // Validate transfer logic
+        if ($data['type'] === 'transfer') {
+            // Check that from_wallet_id and to_wallet_id are different
+            if (
+                isset($data['from_wallet_id']) && isset($data['to_wallet_id']) &&
+                $data['from_wallet_id'] === $data['to_wallet_id']
+            ) {
+                $errors[] = 'Transfer source and destination wallets must be different.';
+            }
+
+            // Check that both wallets belong to the same user
+            if (isset($data['from_wallet_id']) && isset($data['to_wallet_id'])) {
+                $fromWallet = Wallet::find($data['from_wallet_id']);
+                $toWallet = Wallet::find($data['to_wallet_id']);
+
+                if ($fromWallet && $toWallet && $fromWallet->user_id !== $toWallet->user_id) {
+                    $errors[] = 'Cannot transfer between wallets of different users.';
+                }
+
+                // Check currency compatibility - only fail if currencies are explicitly different
+                if (
+                    $fromWallet && $toWallet &&
+                    !empty($fromWallet->currency) && !empty($toWallet->currency) &&
+                    $fromWallet->currency !== $toWallet->currency
+                ) {
+                    $errors[] = 'Currency conversion transfers are not yet supported.';
+                }
+            }
+        }
+
+        return $errors;
     }
 
     /**

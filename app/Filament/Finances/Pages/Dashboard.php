@@ -246,32 +246,8 @@ class Dashboard extends BaseDashboard
           // Set user_id
           $data['user_id'] = Filament::auth()->id();
 
-          // Handle transfer logic
-          if ($data['type'] === 'transfer') {
-            // For transfers, we don't need category_id
-            unset($data['category_id']);
-
-            // Create the transfer transaction
-            $transaction = Transaction::create($data);
-
-            // Update wallet balances
-            $fromWallet = Wallet::find($data['from_wallet_id']);
-            $toWallet = Wallet::find($data['to_wallet_id']);
-
-            $fromWallet->decrement('balance', $data['amount']);
-            $toWallet->increment('balance', $data['amount']);
-          } else {
-            // For income/expense transactions
-            $transaction = Transaction::create($data);
-
-            // Update wallet balance
-            $wallet = Wallet::find($data['wallet_id']);
-            if ($data['type'] === 'income') {
-              $wallet->increment('balance', $data['amount']);
-            } else {
-              $wallet->decrement('balance', $data['amount']);
-            }
-          }
+          // Create the transaction (balance updates are handled automatically by the model)
+          $transaction = Transaction::create($data);
 
           // Send notification
           Notification::make()

@@ -31,9 +31,15 @@ return [
   'balance_information' => 'Información de Balance',
 
   // Helper texts
-  'currency_helper' => 'Código de moneda de 3 letras (ej: USD, EUR, GBP)',
+  'currency_helper' => 'Selecciona la moneda para esta billetera (afecta compatibilidad de transferencias)',
   'active_helper' => 'Las billeteras inactivas se ocultarán de los formularios de transacciones',
-  'initial_balance_helper' => 'El balance inicial para esta billetera',
+  'initial_balance_helper' => 'El saldo inicial para esta billetera',
+  'initial_balance_edit_helper' => 'Cambiar esto ajustará el saldo actual por la diferencia',
+  'minimum_initial_balance_hint' => 'Mínimo permitido: :minimum',
+
+  // Validation messages
+  'invalid_initial_balance_title' => 'Saldo Inicial Inválido',
+  'invalid_initial_balance_message' => 'No se puede establecer un saldo inicial que resulte en un saldo actual negativo. Saldo actual: :current_balance. Saldo inicial mínimo permitido: :minimum_initial_balance',
 
   // Status messages
   'balance_placeholder' => 'Se establecerá al balance inicial',
@@ -55,4 +61,14 @@ return [
   'combined_balance' => 'Balance combinado',
   'average_balance' => 'Balance Promedio',
   'previous_month_balance' => 'Balance del Mes Anterior',
+
+  // Wallet types for translation tests
+  'types' => [
+    'checking' => 'Cuenta Corriente',
+    'savings' => 'Ahorros',
+    'credit_card' => 'Tarjeta de Crédito',
+    'cash' => 'Efectivo',
+    'investment' => 'Inversión',
+    'other' => 'Otro',
+  ],
 ];

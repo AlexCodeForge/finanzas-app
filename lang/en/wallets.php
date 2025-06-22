@@ -31,9 +31,15 @@ return [
   'balance_information' => 'Balance Information',
 
   // Helper texts
-  'currency_helper' => '3-letter currency code (e.g., USD, EUR, GBP)',
+  'currency_helper' => 'Select the currency for this wallet (affects transfer compatibility)',
   'active_helper' => 'Inactive wallets will be hidden from transaction forms',
   'initial_balance_helper' => 'The starting balance for this wallet',
+  'initial_balance_edit_helper' => 'Changing this will adjust the current balance by the difference',
+  'minimum_initial_balance_hint' => 'Minimum allowed: :minimum',
+
+  // Validation messages
+  'invalid_initial_balance_title' => 'Invalid Initial Balance',
+  'invalid_initial_balance_message' => 'Cannot set initial balance that would result in a negative current balance. Current balance: :current_balance. Minimum allowed initial balance: :minimum_initial_balance',
 
   // Status messages
   'balance_placeholder' => 'Will be set to initial balance',
@@ -55,4 +61,14 @@ return [
   'combined_balance' => 'Combined balance',
   'average_balance' => 'Average Balance',
   'previous_month_balance' => 'Previous Month Balance',
+
+  // Wallet types for translation tests
+  'types' => [
+    'checking' => 'Checking',
+    'savings' => 'Savings',
+    'credit_card' => 'Credit Card',
+    'cash' => 'Cash',
+    'investment' => 'Investment',
+    'other' => 'Other',
+  ],
 ];

@@ -66,11 +66,33 @@ class WalletResource extends Resource
                             ->default('bank_account')
                             ->required(),
 
-                        Forms\Components\TextInput::make('currency')
+                        Forms\Components\Select::make('currency')
                             ->label(__('wallets.currency'))
+                            ->options([
+                                'USD' => 'USD - US Dollar',
+                                'EUR' => 'EUR - Euro',
+                                'GBP' => 'GBP - British Pound',
+                                'CAD' => 'CAD - Canadian Dollar',
+                                'AUD' => 'AUD - Australian Dollar',
+                                'JPY' => 'JPY - Japanese Yen',
+                                'CHF' => 'CHF - Swiss Franc',
+                                'CNY' => 'CNY - Chinese Yuan',
+                                'INR' => 'INR - Indian Rupee',
+                                'BRL' => 'BRL - Brazilian Real',
+                                'MXN' => 'MXN - Mexican Peso',
+                                'KRW' => 'KRW - South Korean Won',
+                                'SGD' => 'SGD - Singapore Dollar',
+                                'HKD' => 'HKD - Hong Kong Dollar',
+                                'NOK' => 'NOK - Norwegian Krone',
+                                'SEK' => 'SEK - Swedish Krona',
+                                'DKK' => 'DKK - Danish Krone',
+                                'PLN' => 'PLN - Polish Zloty',
+                                'CZK' => 'CZK - Czech Koruna',
+                                'HUF' => 'HUF - Hungarian Forint',
+                            ])
                             ->default('USD')
                             ->required()
-                            ->maxLength(3)
+                            ->searchable()
                             ->helperText(__('wallets.currency_helper')),
 
                         Forms\Components\Toggle::make('is_active')
@@ -88,7 +110,16 @@ class WalletResource extends Resource
                             ->default(0)
                             ->prefix('$')
                             ->step(0.01)
-                            ->helperText(__('wallets.initial_balance_helper')),
+                            ->helperText(function (?Wallet $record): string {
+                                if (!$record) {
+                                    return __('wallets.initial_balance_helper');
+                                }
+                                $minimumAllowed = ($record->initial_balance ?? 0) - $record->balance;
+                                return __('wallets.initial_balance_edit_helper') . ' ' .
+                                    __('wallets.minimum_initial_balance_hint', [
+                                        'minimum' => '$' . number_format($minimumAllowed, 2)
+                                    ]);
+                            }),
 
                         Forms\Components\Placeholder::make('current_balance')
                             ->label(__('wallets.current_balance'))

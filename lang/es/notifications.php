@@ -30,6 +30,7 @@ return [
   'recurring_transaction_subject' => 'Transacción Recurrente Procesada',
   'recurring_transaction_message' => 'Se ha creado automáticamente una transacción recurrente de :type por :amount para ":description".',
   'next_occurrence' => 'Próxima ocurrencia: :date',
+  'recurring_transaction_created_description' => 'Se ha creado una nueva transacción recurrente',
 
   // Notification Actions
   'mark_as_read' => 'Marcar como Leída',
@@ -57,4 +58,9 @@ return [
   'hours_ago' => 'hace :count hora|hace :count horas',
   'days_ago' => 'hace :count día|hace :count días',
   'weeks_ago' => 'hace :count semana|hace :count semanas',
+
+  // Additional notification messages for tests
+  'transaction_created' => 'Transacción Creada',
+  'low_balance_alert' => 'Saldo bajo en billetera',
+  'budget_exceeded' => 'Presupuesto excedido',
 ];

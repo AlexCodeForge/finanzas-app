@@ -108,6 +108,8 @@ class User extends Authenticatable
             $this->preferredWallet1,
             $this->preferredWallet2,
             $this->preferredWallet3,
-        ])->filter();
+        ])->filter(function ($wallet) {
+            return !is_null($wallet);
+        });
     }
 }

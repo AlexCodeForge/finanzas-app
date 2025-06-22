@@ -25,7 +25,20 @@ class TransactionsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        // Get the wallet ID and build custom query for all related transactions
+        $walletId = $this->ownerRecord->id;
+
+        $query = Transaction::query()
+            ->where(function (Builder $query) use ($walletId) {
+                $query->where('wallet_id', $walletId)
+                    ->orWhere('from_wallet_id', $walletId)
+                    ->orWhere('to_wallet_id', $walletId);
+            })
+            ->where('user_id', $this->ownerRecord->user_id)
+            ->orderBy('date', 'desc');
+
         return $table
+            ->query($query)
             ->recordTitleAttribute('description')
             ->columns([
                 Tables\Columns\TextColumn::make('date')
@@ -157,7 +170,6 @@ class TransactionsRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('date', 'desc')
             ->paginated([10, 25, 50]);
     }
 }

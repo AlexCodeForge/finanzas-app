@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Wallet extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'user_id',
         'name',
@@ -64,5 +66,23 @@ class Wallet extends Model
     {
         return $this->hasMany(Transaction::class, 'from_wallet_id')
             ->where('type', 'transfer');
+    }
+
+    /**
+     * Get all transactions related to this wallet (regular transactions + transfers).
+     * This includes:
+     * - Regular transactions (income/expense) where wallet_id matches
+     * - Transfer transactions where this wallet is the source (from_wallet_id)
+     * - Transfer transactions where this wallet is the destination (to_wallet_id)
+     */
+    public function allTransactions()
+    {
+        return Transaction::where(function ($query) {
+            $query->where('wallet_id', $this->id)
+                ->orWhere('from_wallet_id', $this->id)
+                ->orWhere('to_wallet_id', $this->id);
+        })
+            ->where('user_id', $this->user_id)
+            ->orderBy('date', 'desc');
     }
 }

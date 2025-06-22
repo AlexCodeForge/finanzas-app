@@ -1,7 +1,7 @@
 <?php
 
 return [
-  'title' => 'Personal Finance',
+  'title' => 'Finance',
   'dashboard' => 'Dashboard',
   'total_balance' => 'Total Balance',
   'monthly_income' => 'Monthly Income',

@@ -65,7 +65,67 @@ class TransactionResource extends Resource
                             ->numeric()
                             ->minValue(0.01)
                             ->prefix('$')
-                            ->step(0.01),
+                            ->step(0.01)
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function ($state, $get, $set, $livewire) {
+                                // Validate expense amount doesn't exceed wallet balance
+                                $type = $get('type');
+                                $walletId = $get('wallet_id');
+                                $fromWalletId = $get('from_wallet_id');
+
+                                if ($type === 'expense' && $walletId && $state) {
+                                    $wallet = Wallet::find($walletId);
+                                    if ($wallet && $state > $wallet->balance) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->danger()
+                                            ->title(__('transactions.insufficient_funds_title'))
+                                            ->body(__('transactions.insufficient_funds_message', [
+                                                'amount' => '$' . number_format($state, 2),
+                                                'balance' => '$' . number_format($wallet->balance, 2),
+                                                'wallet' => $wallet->name,
+                                            ]))
+                                            ->persistent()
+                                            ->send();
+                                    }
+                                } elseif ($type === 'transfer' && $fromWalletId && $state) {
+                                    $fromWallet = Wallet::find($fromWalletId);
+                                    if ($fromWallet && $state > $fromWallet->balance) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->danger()
+                                            ->title(__('transactions.insufficient_funds_title'))
+                                            ->body(__('transactions.insufficient_funds_message', [
+                                                'amount' => '$' . number_format($state, 2),
+                                                'balance' => '$' . number_format($fromWallet->balance, 2),
+                                                'wallet' => $fromWallet->name,
+                                            ]))
+                                            ->persistent()
+                                            ->send();
+                                    }
+                                }
+                            })
+                            ->helperText(function ($get) {
+                                $type = $get('type');
+                                $walletId = $get('wallet_id');
+                                $fromWalletId = $get('from_wallet_id');
+
+                                if ($type === 'expense' && $walletId) {
+                                    $wallet = Wallet::find($walletId);
+                                    if ($wallet) {
+                                        return __('transactions.available_balance_hint', [
+                                            'balance' => '$' . number_format($wallet->balance, 2)
+                                        ]);
+                                    }
+                                } elseif ($type === 'transfer' && $fromWalletId) {
+                                    $fromWallet = Wallet::find($fromWalletId);
+                                    if ($fromWallet) {
+                                        return __('transactions.available_balance_hint', [
+                                            'balance' => '$' . number_format($fromWallet->balance, 2)
+                                        ]);
+                                    }
+                                }
+
+                                return null;
+                            }),
 
                         Forms\Components\TextInput::make('description')
                             ->label(__('transactions.description'))
@@ -148,6 +208,7 @@ class TransactionResource extends Resource
                             ->required(fn(Get $get): bool => $get('type') !== 'transfer')
                             ->searchable()
                             ->preload()
+                            ->live()
                             ->visible(fn(Get $get): bool => $get('type') !== 'transfer'),
 
                         Forms\Components\Select::make('from_wallet_id')
@@ -160,6 +221,7 @@ class TransactionResource extends Resource
                             ->required(fn(Get $get): bool => $get('type') === 'transfer')
                             ->searchable()
                             ->preload()
+                            ->live()
                             ->visible(fn(Get $get): bool => $get('type') === 'transfer'),
 
                         Forms\Components\Select::make('to_wallet_id')

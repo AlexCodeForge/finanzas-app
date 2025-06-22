@@ -32,8 +32,12 @@ return [
     'yearly' => 'Anual',
 
     // Validation messages
-    'no_wallets_title' => 'No Hay Billeteras Disponibles',
-    'no_wallets_message' => 'Necesitas crear al menos una billetera antes de poder crear transacciones. Haz clic en el botón de abajo para crear tu primera billetera.',
+    'no_wallets_title' => 'Sin Billeteras Activas',
+    'no_wallets_message' => 'Necesitas crear al menos una billetera activa antes de crear transacciones.',
+    'insufficient_funds_title' => 'Fondos Insuficientes',
+    'insufficient_funds_message' => 'No se puede crear transacción de :amount. La billetera ":wallet" solo tiene :balance disponible.',
+    'available_balance_hint' => 'Saldo disponible: :balance',
+    'validation_error' => 'Error de Validación',
 
     // Transaction statuses
     'status_pending' => 'Pendiente',
@@ -60,12 +64,24 @@ return [
     // Stats widget
     'total_transactions' => 'Total de Transacciones',
     'all_transactions' => 'Todas las transacciones',
-    'total_income' => 'Total de Ingresos',
+    'total_income' => 'Ingresos Totales',
     'money_received' => 'Dinero recibido',
-    'total_expenses' => 'Total de Gastos',
+    'total_expenses' => 'Gastos Totales',
     'money_spent' => 'Dinero gastado',
     'net_balance' => 'Balance Neto',
+    'transaction_flow' => 'Flujo de Transacciones',
     'income_minus_expenses' => 'Ingresos menos gastos',
+    'income_minus_expenses_note' => 'Ingresos menos gastos (excluye saldos iniciales)',
     'positive_balance' => 'Balance positivo',
     'negative_balance' => 'Balance negativo',
+
+    // Transaction types for translation tests
+    'types' => [
+        'income' => 'Ingreso',
+        'expense' => 'Gasto',
+        'transfer' => 'Transferencia',
+    ],
+
+    // Count for pluralization tests
+    'count' => '{0} no hay transacciones|{1} 1 transacción|[2,*] :count transacciones',
 ];

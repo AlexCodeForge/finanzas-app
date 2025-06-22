@@ -4,6 +4,7 @@ namespace App\Filament\Finances\Resources\TransactionResource\Pages;
 
 use App\Filament\Finances\Resources\TransactionResource;
 use App\Models\Transaction;
+use App\Models\Wallet;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
@@ -272,63 +273,278 @@ class ViewTransaction extends ViewRecord
 
                 Infolists\Components\Section::make('💰 Transaction Impact')
                     ->schema([
-                        Infolists\Components\Grid::make(3)
-                            ->schema([
-                                Infolists\Components\TextEntry::make('wallet_balance_before')
-                                    ->label('Wallet Balance Before')
-                                    ->money('USD')
-                                    ->state(function (Transaction $record): float {
-                                        if (!$record->wallet) return 0;
+                        // For regular transactions (income/expense)
+                        Infolists\Components\Group::make([
+                            Infolists\Components\Grid::make(3)
+                                ->schema([
+                                    Infolists\Components\TextEntry::make('wallet_balance_before')
+                                        ->label('Wallet Balance Before')
+                                        ->money('USD')
+                                        ->state(function (Transaction $record): float {
+                                            if (!$record->wallet) return 0;
 
-                                        $previousTransactions = $record->wallet->transactions()
-                                            ->where('date', '<', $record->date)
-                                            ->orWhere(function ($query) use ($record) {
-                                                $query->where('date', '=', $record->date)
-                                                    ->where('id', '<', $record->id);
-                                            })
-                                            ->sum('amount');
+                                            // Calculate balance before this transaction
+                                            $wallet = $record->wallet;
+                                            $balanceBeforeTransaction = $wallet->initial_balance;
 
-                                        return $record->wallet->initial_balance + $previousTransactions;
-                                    })
-                                    ->icon('heroicon-o-scale'),
+                                            // Get all transactions before this one
+                                            $previousTransactions = $wallet->transactions()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<', $record->id);
+                                                        });
+                                                })
+                                                ->get();
 
-                                Infolists\Components\TextEntry::make('wallet_balance_after')
-                                    ->label('Wallet Balance After')
-                                    ->money('USD')
-                                    ->state(function (Transaction $record): float {
-                                        if (!$record->wallet) return 0;
+                                            // Get incoming transfers
+                                            $incomingTransfers = $wallet->incomingTransfers()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<', $record->id);
+                                                        });
+                                                })
+                                                ->get();
 
-                                        $previousTransactions = $record->wallet->transactions()
-                                            ->where('date', '<', $record->date)
-                                            ->orWhere(function ($query) use ($record) {
-                                                $query->where('date', '=', $record->date)
-                                                    ->where('id', '<=', $record->id);
-                                            })
-                                            ->sum('amount');
+                                            // Get outgoing transfers
+                                            $outgoingTransfers = $wallet->outgoingTransfers()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<', $record->id);
+                                                        });
+                                                })
+                                                ->get();
 
-                                        return $record->wallet->initial_balance + $previousTransactions;
-                                    })
-                                    ->icon('heroicon-o-scale')
-                                    ->color('primary')
-                                    ->weight(FontWeight::Bold),
+                                            // Calculate balance from all previous transactions
+                                            foreach ($previousTransactions as $transaction) {
+                                                if ($transaction->type === 'income') {
+                                                    $balanceBeforeTransaction += $transaction->amount;
+                                                } elseif ($transaction->type === 'expense') {
+                                                    $balanceBeforeTransaction -= $transaction->amount;
+                                                }
+                                            }
 
-                                Infolists\Components\TextEntry::make('balance_impact')
-                                    ->label('Balance Impact')
-                                    ->money('USD')
-                                    ->state(fn(Transaction $record): float => $record->amount)
-                                    ->color(fn(Transaction $record): string => match ($record->type) {
-                                        'income' => 'success',
-                                        'expense' => 'danger',
-                                        'transfer' => 'info',
-                                    })
-                                    ->icon(fn(Transaction $record): string => match ($record->type) {
-                                        'income' => 'heroicon-o-arrow-trending-up',
-                                        'expense' => 'heroicon-o-arrow-trending-down',
-                                        'transfer' => 'heroicon-o-arrow-right-left',
-                                    }),
-                            ]),
+                                            // Add incoming transfers
+                                            foreach ($incomingTransfers as $transfer) {
+                                                $balanceBeforeTransaction += $transfer->amount;
+                                            }
+
+                                            // Subtract outgoing transfers
+                                            foreach ($outgoingTransfers as $transfer) {
+                                                $balanceBeforeTransaction -= $transfer->amount;
+                                            }
+
+                                            return $balanceBeforeTransaction;
+                                        })
+                                        ->icon('heroicon-o-scale'),
+
+                                    Infolists\Components\TextEntry::make('wallet_balance_after')
+                                        ->label('Wallet Balance After')
+                                        ->money('USD')
+                                        ->state(function (Transaction $record): float {
+                                            if (!$record->wallet) return 0;
+
+                                            $wallet = $record->wallet;
+                                            $balanceAfterTransaction = $wallet->initial_balance;
+
+                                            // Get all transactions up to and including this one
+                                            $allTransactions = $wallet->transactions()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<=', $record->id);
+                                                        });
+                                                })
+                                                ->get();
+
+                                            // Get incoming transfers
+                                            $incomingTransfers = $wallet->incomingTransfers()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<=', $record->id);
+                                                        });
+                                                })
+                                                ->get();
+
+                                            // Get outgoing transfers
+                                            $outgoingTransfers = $wallet->outgoingTransfers()
+                                                ->where(function ($query) use ($record) {
+                                                    $query->where('date', '<', $record->date)
+                                                        ->orWhere(function ($subQuery) use ($record) {
+                                                            $subQuery->where('date', '=', $record->date)
+                                                                ->where('id', '<=', $record->id);
+                                                        });
+                                                })
+                                                ->get();
+
+                                            // Calculate balance from all transactions
+                                            foreach ($allTransactions as $transaction) {
+                                                if ($transaction->type === 'income') {
+                                                    $balanceAfterTransaction += $transaction->amount;
+                                                } elseif ($transaction->type === 'expense') {
+                                                    $balanceAfterTransaction -= $transaction->amount;
+                                                }
+                                            }
+
+                                            // Add incoming transfers
+                                            foreach ($incomingTransfers as $transfer) {
+                                                $balanceAfterTransaction += $transfer->amount;
+                                            }
+
+                                            // Subtract outgoing transfers
+                                            foreach ($outgoingTransfers as $transfer) {
+                                                $balanceAfterTransaction -= $transfer->amount;
+                                            }
+
+                                            return $balanceAfterTransaction;
+                                        })
+                                        ->icon('heroicon-o-scale')
+                                        ->color('primary')
+                                        ->weight(FontWeight::Bold),
+
+                                    Infolists\Components\TextEntry::make('balance_impact')
+                                        ->label('Balance Impact')
+                                        ->money('USD')
+                                        ->state(function (Transaction $record): float {
+                                            if ($record->type === 'income') {
+                                                return $record->amount; // Positive impact
+                                            } elseif ($record->type === 'expense') {
+                                                return -$record->amount; // Negative impact
+                                            }
+                                            return 0;
+                                        })
+                                        ->color(fn(Transaction $record): string => match ($record->type) {
+                                            'income' => 'success',
+                                            'expense' => 'danger',
+                                            default => 'gray',
+                                        })
+                                        ->icon(fn(Transaction $record): string => match ($record->type) {
+                                            'income' => 'heroicon-o-arrow-trending-up',
+                                            'expense' => 'heroicon-o-arrow-trending-down',
+                                            default => 'heroicon-o-minus',
+                                        }),
+                                ]),
+                        ])
+                            ->visible(fn(Transaction $record): bool => $record->type !== 'transfer'),
+
+                        // For transfer transactions - show impact on both wallets
+                        Infolists\Components\Group::make([
+                            // From Wallet Impact
+                            Infolists\Components\Section::make('📤 From Wallet Impact')
+                                ->schema([
+                                    Infolists\Components\Grid::make(3)
+                                        ->schema([
+                                            Infolists\Components\TextEntry::make('from_wallet_balance_before')
+                                                ->label('Wallet Balance Before')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    if (!$record->fromWallet) return 0;
+                                                    return $this->calculateWalletBalanceBefore($record->fromWallet, $record);
+                                                })
+                                                ->icon('heroicon-o-scale'),
+
+                                            Infolists\Components\TextEntry::make('from_wallet_balance_after')
+                                                ->label('Wallet Balance After')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    if (!$record->fromWallet) return 0;
+                                                    return $this->calculateWalletBalanceAfter($record->fromWallet, $record);
+                                                })
+                                                ->icon('heroicon-o-scale')
+                                                ->color(function (Transaction $record): string {
+                                                    // Always red for "From Wallet" after since money is going out (reduction)
+                                                    return 'danger';
+                                                })
+                                                ->helperText(function (Transaction $record): string {
+                                                    if (!$record->fromWallet) return '';
+                                                    $balanceBefore = $this->calculateWalletBalanceBefore($record->fromWallet, $record);
+                                                    $balanceAfter = $this->calculateWalletBalanceAfter($record->fromWallet, $record);
+
+                                                    if ($balanceBefore > 0 && $balanceAfter >= 0) {
+                                                        return 'Balance reduced';
+                                                    } elseif ($balanceBefore > 0 && $balanceAfter < 0) {
+                                                        return 'Balance reduced (now in debt)';
+                                                    } elseif ($balanceBefore < 0 && $balanceAfter < 0) {
+                                                        return 'Debt increased';
+                                                    } else {
+                                                        return 'Balance decreased';
+                                                    }
+                                                }),
+
+                                            Infolists\Components\TextEntry::make('from_wallet_impact')
+                                                ->label('Balance Impact')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    return -$record->amount; // Negative impact (money going out)
+                                                })
+                                                ->color('danger')
+                                                ->icon('heroicon-o-arrow-trending-down'),
+                                        ]),
+                                ])
+                                ->compact(),
+
+                            // To Wallet Impact
+                            Infolists\Components\Section::make('📥 To Wallet Impact')
+                                ->schema([
+                                    Infolists\Components\Grid::make(3)
+                                        ->schema([
+                                            Infolists\Components\TextEntry::make('to_wallet_balance_before')
+                                                ->label('Wallet Balance Before')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    if (!$record->toWallet) return 0;
+                                                    return $this->calculateWalletBalanceBefore($record->toWallet, $record);
+                                                })
+                                                ->icon('heroicon-o-scale'),
+
+                                            Infolists\Components\TextEntry::make('to_wallet_balance_after')
+                                                ->label('Wallet Balance After')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    if (!$record->toWallet) return 0;
+                                                    return $this->calculateWalletBalanceAfter($record->toWallet, $record);
+                                                })
+                                                ->icon('heroicon-o-scale')
+                                                ->color(function (Transaction $record): string {
+                                                    // Always green for "To Wallet" after since money is coming in (improvement)
+                                                    return 'success';
+                                                })
+                                                ->helperText(function (Transaction $record): string {
+                                                    if (!$record->toWallet) return '';
+                                                    $balanceBefore = $this->calculateWalletBalanceBefore($record->toWallet, $record);
+                                                    $balanceAfter = $this->calculateWalletBalanceAfter($record->toWallet, $record);
+
+                                                    if ($balanceBefore < 0 && $balanceAfter < 0) {
+                                                        return 'Balance improved (debt reduced)';
+                                                    } elseif ($balanceBefore < 0 && $balanceAfter >= 0) {
+                                                        return 'Balance improved (debt cleared)';
+                                                    } else {
+                                                        return 'Balance increased';
+                                                    }
+                                                }),
+
+                                            Infolists\Components\TextEntry::make('to_wallet_impact')
+                                                ->label('Balance Impact')
+                                                ->money('USD')
+                                                ->state(function (Transaction $record): float {
+                                                    return $record->amount; // Positive impact (money coming in)
+                                                })
+                                                ->color('success')
+                                                ->icon('heroicon-o-arrow-trending-up'),
+                                        ]),
+                                ])
+                                ->compact(),
+                        ])
+                            ->visible(fn(Transaction $record): bool => $record->type === 'transfer'),
                     ])
-                    ->visible(fn(Transaction $record): bool => $record->type !== 'transfer')
                     ->columnSpanFull()
                     ->collapsible(),
             ])
@@ -338,5 +554,123 @@ class ViewTransaction extends ViewRecord
                 'lg' => 3,
                 'xl' => 3,
             ]);
+    }
+
+    private function calculateWalletBalanceBefore(Wallet $wallet, Transaction $transaction): float
+    {
+        $balanceBeforeTransaction = $wallet->initial_balance;
+
+        // Get all transactions before this one
+        $previousTransactions = $wallet->transactions()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Get incoming transfers
+        $incomingTransfers = $wallet->incomingTransfers()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Get outgoing transfers
+        $outgoingTransfers = $wallet->outgoingTransfers()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Calculate balance from all previous transactions
+        foreach ($previousTransactions as $prevTransaction) {
+            if ($prevTransaction->type === 'income') {
+                $balanceBeforeTransaction += $prevTransaction->amount;
+            } elseif ($prevTransaction->type === 'expense') {
+                $balanceBeforeTransaction -= $prevTransaction->amount;
+            }
+        }
+
+        // Add incoming transfers
+        foreach ($incomingTransfers as $transfer) {
+            $balanceBeforeTransaction += $transfer->amount;
+        }
+
+        // Subtract outgoing transfers
+        foreach ($outgoingTransfers as $transfer) {
+            $balanceBeforeTransaction -= $transfer->amount;
+        }
+
+        return $balanceBeforeTransaction;
+    }
+
+    private function calculateWalletBalanceAfter(Wallet $wallet, Transaction $transaction): float
+    {
+        $balanceAfterTransaction = $wallet->initial_balance;
+
+        // Get all transactions up to and including this one
+        $allTransactions = $wallet->transactions()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<=', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Get incoming transfers
+        $incomingTransfers = $wallet->incomingTransfers()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<=', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Get outgoing transfers
+        $outgoingTransfers = $wallet->outgoingTransfers()
+            ->where(function ($query) use ($transaction) {
+                $query->where('date', '<', $transaction->date)
+                    ->orWhere(function ($subQuery) use ($transaction) {
+                        $subQuery->where('date', '=', $transaction->date)
+                            ->where('id', '<=', $transaction->id);
+                    });
+            })
+            ->get();
+
+        // Calculate balance from all transactions
+        foreach ($allTransactions as $trans) {
+            if ($trans->type === 'income') {
+                $balanceAfterTransaction += $trans->amount;
+            } elseif ($trans->type === 'expense') {
+                $balanceAfterTransaction -= $trans->amount;
+            }
+        }
+
+        // Add incoming transfers
+        foreach ($incomingTransfers as $transfer) {
+            $balanceAfterTransaction += $transfer->amount;
+        }
+
+        // Subtract outgoing transfers
+        foreach ($outgoingTransfers as $transfer) {
+            $balanceAfterTransaction -= $transfer->amount;
+        }
+
+        return $balanceAfterTransaction;
     }
 }

@@ -6,7 +6,7 @@ return [
   'thanks' => 'Thank you for using our application!',
 
   // Transaction Created
-  'transaction_created' => 'Transaction Created',
+  'transaction_created' => 'Transaction Created Successfully',
   'transaction_created_subject' => 'New Transaction Created',
   'transaction_created_message' => 'A new :type transaction of :amount has been created for ":description".',
   'view_transaction' => 'View Transaction',
@@ -30,6 +30,7 @@ return [
   'recurring_transaction_subject' => 'Recurring Transaction Processed',
   'recurring_transaction_message' => 'A recurring :type transaction of :amount has been automatically created for ":description".',
   'next_occurrence' => 'Next occurrence: :date',
+  'recurring_transaction_created_description' => 'A new recurring transaction has been created',
 
   // Notification Actions
   'mark_as_read' => 'Mark as Read',
@@ -57,4 +58,9 @@ return [
   'hours_ago' => ':count hour ago|:count hours ago',
   'days_ago' => ':count day ago|:count days ago',
   'weeks_ago' => ':count week ago|:count weeks ago',
+
+  // Additional notification messages for tests
+  'transaction_created' => 'Transaction Created Successfully',
+  'low_balance_alert' => 'Low Balance Alert',
+  'budget_exceeded' => 'Budget Exceeded',
 ];

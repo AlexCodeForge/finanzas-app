@@ -32,8 +32,12 @@ return [
     'yearly' => 'Yearly',
 
     // Validation messages
-    'no_wallets_title' => 'No Wallets Available',
-    'no_wallets_message' => 'You need to create at least one wallet before you can create transactions. Click the button below to create your first wallet.',
+    'no_wallets_title' => 'No Active Wallets',
+    'no_wallets_message' => 'You need to create at least one active wallet before creating transactions.',
+    'insufficient_funds_title' => 'Insufficient Funds',
+    'insufficient_funds_message' => 'Cannot create :amount transaction. Wallet ":wallet" only has :balance available.',
+    'available_balance_hint' => 'Available balance: :balance',
+    'validation_error' => 'Validation Error',
 
     // Transaction statuses
     'status_pending' => 'Pending',
@@ -65,7 +69,19 @@ return [
     'total_expenses' => 'Total Expenses',
     'money_spent' => 'Money spent',
     'net_balance' => 'Net Balance',
+    'transaction_flow' => 'Transaction Flow',
     'income_minus_expenses' => 'Income minus expenses',
+    'income_minus_expenses_note' => 'Income minus expenses (excludes initial balances)',
     'positive_balance' => 'Positive balance',
     'negative_balance' => 'Negative balance',
+
+    // Transaction types for translation tests
+    'types' => [
+        'income' => 'Income',
+        'expense' => 'Expense',
+        'transfer' => 'Transfer',
+    ],
+
+    // Count for pluralization tests
+    'count' => '{0} no transactions|{1} 1 transaction|[2,*] :count transactions',
 ];

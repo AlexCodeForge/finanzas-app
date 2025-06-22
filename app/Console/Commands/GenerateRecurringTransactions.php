@@ -83,6 +83,17 @@ class GenerateRecurringTransactions extends Command
      */
     protected function createRecurringInstance(Transaction $recurring): Transaction
     {
+        // Validate wallet balance before creating the transaction
+        if ($recurring->type === 'expense' && $recurring->wallet) {
+            if ($recurring->amount > $recurring->wallet->balance) {
+                throw new \Exception("Insufficient funds in wallet '{$recurring->wallet->name}' for recurring transaction. Required: \${$recurring->amount}, Available: \${$recurring->wallet->balance}");
+            }
+        } elseif ($recurring->type === 'transfer' && $recurring->fromWallet) {
+            if ($recurring->amount > $recurring->fromWallet->balance) {
+                throw new \Exception("Insufficient funds in wallet '{$recurring->fromWallet->name}' for recurring transfer. Required: \${$recurring->amount}, Available: \${$recurring->fromWallet->balance}");
+            }
+        }
+
         $newTransaction = new Transaction([
             'user_id' => $recurring->user_id,
             'amount' => $recurring->amount,

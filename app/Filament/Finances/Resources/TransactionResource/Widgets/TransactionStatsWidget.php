@@ -28,7 +28,8 @@ class TransactionStatsWidget extends BaseWidget
     $totalTransactions = $query->count();
     $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
     $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
-    $netBalance = $totalIncome - $totalExpenses;
+    $totalTransfers = (clone $query)->where('type', 'transfer')->sum('amount');
+    $netTransactionFlow = $totalIncome - $totalExpenses; // This is different from wallet balance
 
     return [
       Stat::make(__('transactions.total_transactions'), $totalTransactions)
@@ -46,10 +47,10 @@ class TransactionStatsWidget extends BaseWidget
         ->descriptionIcon('heroicon-m-arrow-trending-down')
         ->color('danger'),
 
-      Stat::make(__('transactions.net_balance'), '$' . number_format($netBalance, 2))
-        ->description(__('transactions.income_minus_expenses'))
+      Stat::make(__('transactions.transaction_flow'), '$' . number_format($netTransactionFlow, 2))
+        ->description(__('transactions.income_minus_expenses_note'))
         ->descriptionIcon('heroicon-m-scale')
-        ->color($netBalance >= 0 ? 'success' : 'danger'),
+        ->color($netTransactionFlow >= 0 ? 'success' : 'danger'),
     ];
   }
 }
