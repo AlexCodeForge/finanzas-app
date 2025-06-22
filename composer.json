@@ -13,7 +13,8 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
         "owenvoke/blade-fontawesome": "^2.9",
-        "socialiteproviders/discord": "^4.2"
+        "socialiteproviders/discord": "^4.2",
+        "tomatophp/filament-pwa": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

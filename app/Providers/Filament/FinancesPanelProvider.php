@@ -96,6 +96,7 @@ class FinancesPanelProvider extends PanelProvider
                     ->registration(true)
                     // (optional) Change the associated model class.
                     ->userModelClass(\App\Models\User::class)
-            );
+            )
+            ->plugin(\TomatoPHP\FilamentPWA\FilamentPWAPlugin::make());
     }
 }
